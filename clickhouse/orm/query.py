@@ -283,11 +283,14 @@ class QuerySet(object):
         self._q = []
         self._fields = model_cls.fields().keys()
         self._limits = None
-        self._join_type=''
-        self._subquery = ''
+        self._join_label = ''
+        self._join_type = ''
         self._join_fields = []
         self._join_query = None
+        self._subquery = ''
         self._distinct = False
+        self._extra = ''
+        self._array = ''
         self._final = False
 
     def __iter__(self):
@@ -337,16 +340,19 @@ class QuerySet(object):
         ordering = '\nORDER BY ' + self.order_by_as_sql() if self._order_by else ''
         limit = '\nLIMIT %d, %d' % self._limits if self._limits else ''
         join = '\n%s' % self.join_as_sql() if self._join_fields else ''
+        array_join = '\n%s' % self._array if self._array else ''
         final = ' FINAL' if self._final else ''
         table = self._subquery if self._subquery else '`%s`' % self._model_cls.table_name()
-        params = (distinct, fields, table, join,
+        params = (distinct, fields, table, join, array_join,
                   final, self.conditions_as_sql(), ordering, limit)
-        return u'SELECT %s%s\nFROM %s%s%s\nWHERE %s%s%s' % params
+        return u'SELECT %s%s\nFROM %s%s%s%s\nWHERE %s%s%s' % params
 
-    def join(self, query, *join_fields, inner_=False,  all_=True ):
+    def join(self, query, *join_fields, inner_=False, label_='', all_=True ):
         qs = copy(self)
         qs._join_fields = join_fields
         qs._join_query = query
+        if label_:
+            qs._join_label = ' AS %s' % label_
         if all_:
             qs._join_type += 'ALL '
         else:
@@ -357,14 +363,28 @@ class QuerySet(object):
             qs._join_type += 'LEFT JOIN '
         return qs
 
+    def array_join(self, *array, label=''):
+        array = comma_join((str(item)) for item in array)
+        qs = copy(self)
+        qs._array = 'ARRAY JOIN [%s]' % array + ' AS %s' % label if label else ''
+        return qs
+
     def join_as_sql(self):
         join_fields = comma_join('%s' % field for field in self._join_fields)
-        params = (self._join_type, self._join_query.as_sql(), join_fields)
-        return u'%s (%s) USING %s' % params
+        params = (self._join_type, self._join_query.as_sql(), self._join_label, join_fields)
+        return u'%s (%s)%s USING %s' % params
 
-    def subquery(self):
-        qs=QuerySet(self._model_cls, self._database)
-        qs._subquery = u'(%s)' % self.as_sql()
+    def subquery(self, label=''):
+        qs = QuerySet(self._model_cls, self._database)
+        if label:
+            qs._subquery = u'(%s) AS %s' % (self.as_sql(),label)
+        else:
+            qs._subquery = u'(%s)' % self.as_sql()
+        return qs
+
+    def extra_filter(self, raw):
+        qs = copy(self)
+        qs._extra = raw
         return qs
 
     def order_by_as_sql(self):
@@ -381,7 +401,14 @@ class QuerySet(object):
         Returns the contents of the query's `WHERE` clause as a string.
         """
         if self._q:
-            return u' AND '.join([q.to_sql(self._model_cls) for q in self._q])
+            if self._extra:
+                res_ = ' AND '.join([q.to_sql(self._model_cls) for q in self._q])
+                res_ += ' AND ' + self._extra
+                return res_
+            else:
+                return u' AND '.join([q.to_sql(self._model_cls) for q in self._q])
+        elif self._extra:
+            return self._extra
         else:
             return u'1'
 
@@ -535,7 +562,10 @@ class AggregateQuerySet(QuerySet):
         self._distinct = base_qs._distinct
         self._join_type = base_qs._join_type
         self._join_fields = base_qs._join_fields
+        self._join_label =base_qs._join_label
         self._join_query = base_qs._join_query
+        self._array = base_qs._array
+        self._extra = base_qs._extra
         self._having = []
         self._with = None
 
@@ -593,8 +623,9 @@ class AggregateQuerySet(QuerySet):
             table = self._subquery if self._subquery else '`%s`' % self._model_cls.table_name(),
             conds=self.conditions_as_sql(),
             join=self.join_as_sql() if self._join_fields else '',
+            array_join='%s' % self._array if self._array else ''
         )
-        sql = u'SELECT %(distinct)s%(fields)s\nFROM %(table)s\n%(join)s\nWHERE %(conds)s' % params
+        sql = u'SELECT %(distinct)s%(fields)s\nFROM %(table)s\n%(join)s\n%(array_join)s\nWHERE %(conds)s' % params
         if self._grouping_fields:
             sql += '\nGROUP BY ' + grouping
         if self._having:
