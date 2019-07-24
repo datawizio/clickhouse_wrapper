@@ -106,6 +106,10 @@ class Column(Element, ArithmeticOpsToStr):
     def __str__(self):
         return NoEscapeStr(self._name)
 
+    def label(self, label):
+        self._name = self._name + '` AS `' + label
+        return self
+
     __repr__ = __str__
 
 
