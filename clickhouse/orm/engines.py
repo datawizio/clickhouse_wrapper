@@ -47,7 +47,7 @@ class MergeTree(Engine):
         # So let's control only one of them is given.
         assert date_col or partition_key, "You must set either date_col or partition_key"
         self.date_col = date_col
-        self.partition_key = partition_key if partition_key else ('toYYYYMM(`%s`)' % date_col,)
+        self.partition_key = partition_key if partition_key else ('toYYYYMM(%s)' % date_col,)
 
         self.order_by = order_by
         self.sampling_expr = sampling_expr
@@ -250,7 +250,7 @@ class Distributed(Engine):
             raise ValueError("Cannot create {} engine: specify an underlying table".format(
                 self.__class__.__name__))
 
-        params = ["`%s`" % p for p in [self.cluster, db.db_name, self.table_name]]
+        params = ["%s" % p for p in [self.cluster, db.db_name, self.table_name]]
         if self.sharding_key:
             params.append(self.sharding_key)
         return params

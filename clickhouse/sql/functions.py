@@ -107,7 +107,7 @@ class Column(Element, ArithmeticOpsToStr):
         return NoEscapeStr(self._name)
 
     def label(self, label):
-        self._name = self._name + '` AS `' + label
+        self._name = self._name + ' AS ' + label
         return self
 
     __repr__ = __str__
@@ -133,6 +133,9 @@ class Function(Element, ArithmeticOpsToStr):
 
     def __str__(self):
         return NoEscapeStr('{func}({args})'.format(func=self._name, args=self._args))
+    
+    def label(self, label):
+        return NoEscapeStr('{func}({args}) AS {label}'.format(func=self._name, args=self._args, label=label))
 
     __repr__ = __str__
 
