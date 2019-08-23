@@ -370,9 +370,10 @@ class QuerySet(object):
         return qs
 
     def join_as_sql(self):
+        join_table = u'(%s)' % self._join_query.as_sql() if hasattr(self._join_query,
+                                                                    'as_sql') else u'%s' % self._join_query.table_name()
         join_fields = comma_join('%s' % field for field in self._join_fields)
-        params = (self._join_type, self._join_query.as_sql(), self._join_label, join_fields)
-        return u'%s (%s)%s USING %s' % params
+        return u'%s %s %s USING %s' % (self._join_type, join_table, self._join_label, join_fields)
 
     def subquery(self, label=''):
         qs = QuerySet(self._model_cls, self._database)
