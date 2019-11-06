@@ -114,6 +114,9 @@ class Column(Element, ArithmeticOpsToStr):
         self._name = self._name + '` AS `' + label
         return self
 
+    def __getattr__(self, column):
+        return type(column, (Column,), {'_name': self._name + '.' + column})()
+
     __repr__ = __str__
 
 
