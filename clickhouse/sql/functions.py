@@ -86,6 +86,10 @@ class ArithmeticOpsToStr(NoEscapeStr):
         other = escape(other)
         return ArithmeticOpsToStr('{col} & {value}'.format(col=self, value=other))
 
+    def __getitem__(self, other):
+        other = escape(other)
+        return ArithmeticOpsToStr('{col}[{value}]'.format(col=self, value=other))
+
 
 class Element(object):
 
