@@ -117,10 +117,6 @@ class Column(Element, ArithmeticOpsToStr):
     def __getattr__(self, column):
         return type(column, (Column,), {'_name': self._name + '.' + column})()
 
-    def __getitem__(self, item):
-        self._name = '{}[{}]'.format(NoEscapeStr(self._name), item)
-        return self
-
     __repr__ = __str__
 
 
