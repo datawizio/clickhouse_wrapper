@@ -147,7 +147,7 @@ class Function(Element, ArithmeticOpsToStr):
 class FunctionGenerator(Generator):
 
     def __getattribute__(self, f):
-        return type(f, (Function,), {'_name': f})()
+        return type(f, (Function,), {'_name': f.replace('__', '')})()
 
 
 func = FunctionGenerator()
