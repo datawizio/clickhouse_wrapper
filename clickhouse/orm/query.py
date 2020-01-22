@@ -206,8 +206,15 @@ class Q(object):
             sql = ' {} '.format(self._mode).join(fov.to_sql(model_cls) for fov in self._fovs)
         else:
             if self._l_child and self._r_child:
-                sql = '({} {} {})'.format(
-                        self._l_child.to_sql(model_cls), self._mode, self._r_child.to_sql(model_cls))
+                l_child_sql = self._l_child.to_sql(model_cls)
+                r_child_sql = self._r_child.to_sql(model_cls)
+                if l_child_sql == '1':
+                    sql = '{}'.format(r_child_sql)
+                elif r_child_sql == '1':
+                    sql = '{}'.format(l_child_sql)
+                else:
+                    sql = '({} {} {})'.format(
+                       l_child_sql, self._mode, r_child_sql)
             else:
                 return '1'
         if self._negate:
@@ -403,15 +410,14 @@ class QuerySet(object):
         """
         if self._q:
             if self._extra:
-                res_ = ' AND '.join([q.to_sql(self._model_cls) for q in self._q])
+                res_ = ' AND '.join([q.to_sql(self._model_cls) for q in self._q if q.to_sql(self._model_cls) != '1'])
                 res_ += ' AND ' + self._extra
                 return res_
             else:
-                return u' AND '.join([q.to_sql(self._model_cls) for q in self._q])
+                return u' AND '.join([q.to_sql(self._model_cls) for q in self._q if q.to_sql(self._model_cls) != '1'])
         elif self._extra:
             return self._extra
-        else:
-            return u'1'
+        return u'1'
 
     def count(self):
         """
@@ -606,7 +612,7 @@ class AggregateQuerySet(QuerySet):
         Returns the contents of the query's `HAVING` clause as a string.
         """
         if self._having:
-            return u' AND '.join([q.to_sql(self._model_cls) for q in self._having])
+            return u' AND '.join([q.to_sql(self._model_cls) for q in self._having if q.to_sql(self._model_cls) != '1'])
         else:
             return u'1'
 
