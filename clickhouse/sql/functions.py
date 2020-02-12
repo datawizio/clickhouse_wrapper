@@ -46,7 +46,7 @@ class ArithmeticOpsToStr(NoEscapeStr):
 
     def __sub__(self, other):
         other = escape(other)
-        return ArithmeticOpsToStr('{col} + {value}'.format(col=self, value=other))
+        return ArithmeticOpsToStr('{col} - {value}'.format(col=self, value=other))
 
     def __mul__(self, other):
         other = escape(other)
