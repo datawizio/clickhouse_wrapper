@@ -665,3 +665,8 @@ class AggregateQuerySet(QuerySet):
         qs = copy(self)
         qs._with = 'TOTALS'
         return qs
+
+    def with_cube(self):
+        qs = copy(self)
+        qs._with = 'CUBE'
+        return qs
