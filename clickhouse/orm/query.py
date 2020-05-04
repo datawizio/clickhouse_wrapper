@@ -637,12 +637,12 @@ class AggregateQuerySet(QuerySet):
             sql += '\nGROUP BY ' + grouping
         if self._having:
             sql += '\nHAVING ' + having
+        if self._with:
+            sql += '\nWITH ' + self._with
         if self._order_by:
             sql += '\nORDER BY ' + self.order_by_as_sql()
         if self._limits:
             sql += '\nLIMIT %d, %d' % self._limits
-        if self._with:
-            sql += '\nWITH ' + self._with
         return sql
 
     def __iter__(self):
