@@ -132,8 +132,12 @@ col = ColumnGenerator()
 class Function(Element, ArithmeticOpsToStr):
 
     _name = None
+    _args = None
 
     def __call__(self, *args, **kwargs):
+        # support currying function(args)(args)
+        if self._args is not None:
+            self._name = str(self)
         self._args = ', '.join([escape(x) for x in args])
         self._args = self._args.replace('__', '')
         return self
