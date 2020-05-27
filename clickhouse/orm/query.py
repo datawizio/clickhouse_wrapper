@@ -409,12 +409,10 @@ class QuerySet(object):
         Returns the contents of the query's `WHERE` clause as a string.
         """
         if self._q:
+            res_ = ' AND '.join([q.to_sql(self._model_cls) for q in self._q if q.to_sql(self._model_cls) != '1']) or '1'
             if self._extra:
-                res_ = ' AND '.join([q.to_sql(self._model_cls) for q in self._q if q.to_sql(self._model_cls) != '1'])
                 res_ += ' AND ' + self._extra
-                return res_
-            else:
-                return u' AND '.join([q.to_sql(self._model_cls) for q in self._q if q.to_sql(self._model_cls) != '1'])
+            return res_
         elif self._extra:
             return self._extra
         return u'1'
@@ -627,7 +625,7 @@ class AggregateQuerySet(QuerySet):
         params = dict(
             distinct=distinct,
             fields=fields,
-            table = self._subquery if self._subquery else '%s' % self._model_cls.table_name(),
+            table=self._subquery if self._subquery else '%s' % self._model_cls.table_name(),
             conds=self.conditions_as_sql(),
             join=self.join_as_sql() if self._join_fields else '',
             array_join='%s' % self._array if self._array else ''
