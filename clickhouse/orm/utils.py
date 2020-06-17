@@ -2,6 +2,7 @@ from __future__ import unicode_literals
 from six import string_types, binary_type, text_type, PY3
 import codecs
 import re
+from clickhouse.sql.functions import NoEscapeStr
 
 
 SPECIAL_CHARS = {
@@ -28,7 +29,7 @@ def escape(value, quote=True):
     def escape_one(match):
         return SPECIAL_CHARS[match.group(0)]
 
-    if isinstance(value, string_types):
+    if isinstance(value, string_types) and not isinstance(value, NoEscapeStr):
         value = SPECIAL_CHARS_REGEX.sub(escape_one, value)
         if quote:
             value = "'" + value + "'"
