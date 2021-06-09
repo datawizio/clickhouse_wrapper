@@ -456,7 +456,7 @@ class QuerySet(object):
         if q:
             qs._q = list(self._q) + list(q)
         if filter_fields:
-            qs._q = list(self._q) + [Q(**filter_fields)]
+            qs._q = qs._q + [Q(**filter_fields)]
         return qs
 
     def exclude(self, *q_list, **filter_fields):
@@ -467,7 +467,7 @@ class QuerySet(object):
         if q_list:
             qs._q = list(self._q) + list([~q for q in q_list])
         if filter_fields:
-            qs._q = list(self._q) + [~Q(**filter_fields)]
+            qs._q = qs._q + [~Q(**filter_fields)]
         return qs
 
     def paginate(self, page_num=1, page_size=100):
