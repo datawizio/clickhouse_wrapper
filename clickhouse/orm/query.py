@@ -455,16 +455,19 @@ class QuerySet(object):
         qs = copy(self)
         if q:
             qs._q = list(self._q) + list(q)
-        else:
+        if filter_fields:
             qs._q = list(self._q) + [Q(**filter_fields)]
         return qs
 
-    def exclude(self, **filter_fields):
+    def exclude(self, *q_list, **filter_fields):
         """
         Returns a copy of this queryset that excludes all rows matching the conditions.
         """
         qs = copy(self)
-        qs._q = list(self._q) + [~Q(**filter_fields)]
+        if q_list:
+            qs._q = list(self._q) + list([~q for q in q_list])
+        if filter_fields:
+            qs._q = list(self._q) + [~Q(**filter_fields)]
         return qs
 
     def paginate(self, page_num=1, page_size=100):
