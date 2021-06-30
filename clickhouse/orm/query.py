@@ -205,7 +205,7 @@ class Q(object):
         if self._fovs:
             sql = ' {} '.format(self._mode).join(fov.to_sql(model_cls) for fov in self._fovs)
         else:
-            if self._l_child and self._r_child:
+            if self._l_child is not None and self._r_child is not None:
                 l_child_sql = self._l_child.to_sql(model_cls)
                 r_child_sql = self._r_child.to_sql(model_cls)
                 if l_child_sql == '1':
