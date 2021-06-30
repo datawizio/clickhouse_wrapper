@@ -232,6 +232,9 @@ class Q(object):
         q._negate = True
         return q
 
+    def __bool__(self):
+        return bool(self._fovs or self._r_child or self._l_child)
+
 
 class FBFOV(FOV):
     """
