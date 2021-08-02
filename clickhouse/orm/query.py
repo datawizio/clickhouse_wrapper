@@ -250,8 +250,8 @@ class FBFOV(FOV):
         Need to represent function based field
         """
         @staticmethod
-        def to_db_string(v):
-            return escape(v)
+        def to_db_string(v, quote=True):
+            return escape(v, quote)
 
         @staticmethod
         def to_python(v, _):
