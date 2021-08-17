@@ -188,7 +188,7 @@ class Q(object):
 
     @classmethod
     def _construct_from(cls, l_child, r_child, mode):
-        q = Q()
+        q = cls()
         q._l_child = l_child
         q._r_child = r_child
         q._mode = mode # AND/OR
@@ -222,10 +222,10 @@ class Q(object):
         return sql
 
     def __or__(self, other):
-        return Q._construct_from(self, other, self.OR_MODE)
+        return self.__class__._construct_from(self, other, self.OR_MODE)
 
     def __and__(self, other):
-        return Q._construct_from(self, other, self.AND_MODE)
+        return self.__class__._construct_from(self, other, self.AND_MODE)
 
     def __invert__(self):
         q = copy(self)
