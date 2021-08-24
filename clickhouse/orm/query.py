@@ -164,6 +164,7 @@ class FOV(object):
     def __init__(self, field_name, operator, value):
         self._field_name = field_name
         self._operator = _operators.get(operator)
+        self._operator_lookup = operator
         if self._operator is None:
             # The field name contains __ like my__field
             self._field_name = field_name + '__' + operator
