@@ -96,6 +96,9 @@ class Element(object):
     def __str__(self):
         raise NotImplementedError('`Element` subclass must implement `__getattribute__` method')
 
+    def __hash__(self):
+        return hash(str(self))
+
 
 class Generator(object):
 
@@ -144,7 +147,7 @@ class Function(Element, ArithmeticOpsToStr):
 
     def __str__(self):
         return NoEscapeStr('{func}({args})'.format(func=self._name, args=self._args))
-    
+
     def label(self, label):
         return NoEscapeStr('{func}({args}) AS {label}'.format(func=self._name, args=self._args, label=label))
 
