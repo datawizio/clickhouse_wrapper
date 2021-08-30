@@ -39,8 +39,8 @@ class SimpleOperator(Operator):
         field = getattr(model_cls, field_name)
         value = field.to_db_string(field.to_python(value, pytz.utc))
         if value == '\\N' and self._sql_for_null is not None:
-            return ' '.join([field_name, self._sql_for_null])
-        return ' '.join([field_name, self._sql_operator, value])
+            return '%s %s' % (field_name, self._sql_for_null)
+        return '%s %s %s' % (field_name, self._sql_operator, value)
 
 
 class InOperator(Operator):

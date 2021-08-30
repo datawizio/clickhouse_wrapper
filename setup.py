@@ -3,7 +3,7 @@ try:
 except ImportError:
     from distutils.core import setup, Extension
 
-VERSION = "0.9dev"
+VERSION = "0.10dev"
 
 setup(
     name="clickhouse-wrapper",
