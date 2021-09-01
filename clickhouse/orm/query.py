@@ -81,7 +81,7 @@ class LikeOperator(Operator):
         if self._case_sensitive:
             return '%s LIKE \'%s\'' % (field_name, pattern)
         else:
-            return 'lowerUTF8(%s) LIKE lowerUTF8(\'%s\')' % (field_name, pattern)
+            return 'lowerUTF8(toString(%s)) LIKE lowerUTF8(\'%s\')' % (field_name, pattern)
 
 
 class IExactOperator(Operator):
