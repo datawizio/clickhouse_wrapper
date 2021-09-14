@@ -81,7 +81,7 @@ class LikeOperator(Operator):
         if self._case_sensitive:
             return '%s LIKE \'%s\'' % (field_name, pattern)
         else:
-            return 'lowerUTF8(%s) LIKE lowerUTF8(\'%s\')' % (field_name, pattern)
+            return 'lowerUTF8(toString(%s)) LIKE lowerUTF8(\'%s\')' % (field_name, pattern)
 
 
 class IExactOperator(Operator):
@@ -606,8 +606,10 @@ class AggregateQuerySet(QuerySet):
         """
         raise NotImplementedError('Cannot re-aggregate an AggregateQuerySet')
 
-    def having(self, **filter_fields):
+    def having(self, *q_list, **filter_fields):
         qs = copy(self)
+        if q_list:
+            qs._having += q_list
         if filter_fields:
             qs._having += [FBQ(**filter_fields)]
         return qs
@@ -616,10 +618,9 @@ class AggregateQuerySet(QuerySet):
         """
         Returns the contents of the query's `HAVING` clause as a string.
         """
-        if self._having:
-            return u' AND '.join([q.to_sql(self._model_cls) for q in self._having if q.to_sql(self._model_cls) != '1'])
-        else:
-            return u'1'
+        return (
+            u' AND '.join([q.to_sql(self._model_cls) for q in self._having if q.to_sql(self._model_cls) != '1']) or u'1'
+        )
 
     def as_sql(self):
         """
