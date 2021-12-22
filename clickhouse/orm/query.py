@@ -629,7 +629,9 @@ class AggregateQuerySet(QuerySet):
         distinct = 'DISTINCT ' if self._distinct else ''
         grouping = comma_join('%s' % field for field in self._grouping_fields)
         having = self.having_as_sql()
-        fields = comma_join(list(self._fields) + ['%s AS %s' % (v, k) for k, v in self._calculated_fields.items()])
+        fields = comma_join(
+            ['%s' % f for f in self._fields] + ['%s AS %s' % (v, k) for k, v in self._calculated_fields.items()]
+        )
         params = dict(
             distinct=distinct,
             fields=fields,
