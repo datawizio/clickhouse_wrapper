@@ -99,3 +99,7 @@ def comma_join(items):
     Joins an iterable of strings with commas.
     """
     return ', '.join(items)
+
+
+def is_in_parenthesis(value: str) -> bool:
+    return value.startswith("(") and value.endswith(")")

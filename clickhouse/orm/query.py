@@ -6,7 +6,7 @@ from copy import copy
 from math import ceil
 
 from .engines import CollapsingMergeTree
-from .utils import comma_join, escape
+from .utils import comma_join, escape, is_in_parenthesis
 
 
 # TODO
@@ -235,6 +235,36 @@ class Q(object):
 
     def __bool__(self):
         return bool(self._fovs or self._r_child or self._l_child)
+
+
+class NDEQ(Q):
+    """No Depth Error Q
+    Q that fixes the max recursion depth error in the to_sql() method.
+    """
+
+    def to_sql(self, model_cls, is_root: bool = True) -> str:
+        if self._fovs:
+            sql = ' {} '.format(self._mode).join(fov.to_sql(model_cls) for fov in self._fovs)
+        else:
+            if self._l_child is not None and self._r_child is not None:
+                l_child_sql = self._l_child.to_sql(model_cls, is_root=False)
+                r_child_sql = self._r_child.to_sql(model_cls, is_root=False)
+                if l_child_sql == '1':
+                    sql = '{}'.format(r_child_sql)
+                elif r_child_sql == '1':
+                    sql = '{}'.format(l_child_sql)
+                else:
+                    sql_template = (
+                        '({} {} {})'
+                        if is_root or not (is_in_parenthesis(l_child_sql) and is_in_parenthesis(r_child_sql))
+                        else '{} {} {}'
+                    )
+                    sql = sql_template.format(l_child_sql, self._mode, r_child_sql)
+            else:
+                return '1'
+        if self._negate:
+            sql = 'NOT (%s)' % sql
+        return sql
 
 
 class FBFOV(FOV):
