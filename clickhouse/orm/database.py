@@ -74,7 +74,7 @@ class Database(object):
 
     def __init__(self, db_name, db_url='http://localhost:8123/',
                  username=None, password=None, readonly=False, autocreate=True,
-                 timeout=300, verify_ssl_cert=True):
+                 timeout=300, verify_ssl_cert=True, server_version=None, timezone=None):
         '''
         Initializes a database instance. Unless it's readonly, the database will be
         created on the ClickHouse server if it does not already exist.
@@ -97,18 +97,22 @@ class Database(object):
         self.request_session = requests.Session()
         self.request_session.verify = verify_ssl_cert
         self.settings = {}
-        self.db_exists = False # this is required before running _is_existing_database
-        self.db_exists = self._is_existing_database()
+        self.db_exists = not autocreate  # this is required before running _is_existing_database
         if readonly:
             if not self.db_exists:
                 raise DatabaseException('Database does not exist, and cannot be created under readonly connection')
             self.connection_readonly = self._is_connection_readonly()
             self.readonly = True
-        elif autocreate and not self.db_exists:
-            self.create_database()
-        self.server_version = self._get_server_version()
-        # Versions 1.1.53981 and below don't have timezone function
-        self.server_timezone = self._get_server_timezone() if self.server_version > (1, 1, 53981) else pytz.utc
+        elif autocreate:
+            self.db_exists = self._is_existing_database()
+            if not self.db_exists:
+                self.create_database()
+        self.server_version = server_version or self._get_server_version()
+
+        self.server_timezone = timezone
+        if not self.server_timezone:
+            # Versions 1.1.53981 and below don't have timezone function
+            self.server_timezone = self._get_server_timezone() if self.server_version > (1, 1, 53981) else pytz.utc
 
     def create_database(self):
         '''
